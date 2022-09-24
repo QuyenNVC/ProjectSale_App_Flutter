@@ -2,6 +2,8 @@ import 'package:badges/badges.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_sale_06072022/common/bases/base_widget.dart';
+import 'package:flutter_app_sale_06072022/common/constants/variable_constant.dart';
+import 'package:flutter_app_sale_06072022/data/datasources/local/cache/app_cache.dart';
 import 'package:flutter_app_sale_06072022/data/model/product.dart';
 import 'package:flutter_app_sale_06072022/data/repositories/product_repository.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/home/home_bloc.dart';
@@ -13,6 +15,7 @@ import '../../../common/constants/api_constant.dart';
 import '../../../common/widgets/loading_widget.dart';
 import '../../../data/datasources/remote/api_request.dart';
 import '../../../data/model/cart.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -28,30 +31,42 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Home"),
         leading: IconButton(
           icon: Icon(Icons.logout),
-          onPressed: (){
-
+          onPressed: () {
+            AppCache.setString(key: 'token', value: '');
+            Navigator.pushReplacementNamed(
+                context, VariableConstant.SIGN_IN_ROUTE);
           },
         ),
         actions: [
           Consumer<HomeBloc>(
-            builder: (context, bloc, child){
+            builder: (context, bloc, child) {
               return StreamBuilder<Cart>(
                   initialData: null,
                   stream: bloc.cartController.stream,
                   builder: (context, snapshot) {
-                    if (snapshot.hasError || snapshot.data == null || snapshot.data?.products.isEmpty == true) {
+                    if (snapshot.hasError ||
+                        snapshot.data == null ||
+                        snapshot.data?.products.isEmpty == true) {
                       return Container();
                     }
                     int count = snapshot.data?.products.length ?? 0;
                     return Container(
-                      margin: EdgeInsets.only(right: 10, top: 10),
-                      child: Badge(
-                        badgeContent: Text(count.toString(), style: const TextStyle(color: Colors.white),),
-                        child: Icon(Icons.shopping_cart_outlined),
+                      margin: EdgeInsets.only(right: 20, top: 10),
+                      child: InkWell(
+                        child: Badge(
+                          badgeContent: Text(
+                            count.toString(),
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          child: Icon(Icons.shopping_cart_outlined),
+                        ),
+                        onTap: () {
+                          Navigator.pushNamed(
+                              context, VariableConstant.CART_ROUTE);
+                        },
                       ),
                     );
-                  }
-              );
+                  });
             },
           )
         ],
@@ -96,40 +111,41 @@ class _HomeContainerState extends State<HomeContainer> {
     _homeBloc.eventSink.add(GetCartEvent());
   }
 
+  void addCart(String idProduct) {
+    _homeBloc.eventSink.add(AddCartEvent(idProduct: idProduct));
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Container(
-          child: Stack(
-            children: [
-              StreamBuilder<List<Product>>(
-                  initialData: const [],
-                  stream: _homeBloc.listProductController.stream,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return Container(
-                        child: Center(child: Text("Data error")),
-                      );
-                    }
-                    if (snapshot.hasData && snapshot.data == []) {
-                      return Container();
-                    }
-                    return ListView.builder(
-                        itemCount: snapshot.data?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          return _buildItemFood(snapshot.data?[index]);
-                        }
-                    );
-                  }
-              ),
-              LoadingWidget(
-                bloc: _homeBloc,
-                child: Container(),
-              )
-            ],
-          ),
-        )
-    );
+      child: Stack(
+        children: [
+          StreamBuilder<List<Product>>(
+              initialData: const [],
+              stream: _homeBloc.listProductController.stream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Container(
+                    child: Center(child: Text("Data error")),
+                  );
+                }
+                if (snapshot.hasData && snapshot.data == []) {
+                  return Container();
+                }
+                return ListView.builder(
+                    itemCount: snapshot.data?.length ?? 0,
+                    itemBuilder: (context, index) {
+                      return _buildItemFood(snapshot.data?[index]);
+                    });
+              }),
+          LoadingWidget(
+            bloc: _homeBloc,
+            child: Container(),
+          )
+        ],
+      ),
+    ));
   }
 
   Widget _buildItemFood(Product? product) {
@@ -163,55 +179,55 @@ class _HomeContainerState extends State<HomeContainer> {
                             style: const TextStyle(fontSize: 16)),
                       ),
                       Text(
-                          "Giá : ${NumberFormat("#,###", "en_US")
-                                  .format(product.price)} đ",
+                          "Giá : ${NumberFormat("#,###", "en_US").format(product.price)} đ",
                           style: const TextStyle(fontSize: 12)),
-                      Row(
-                          children:[
-                            ElevatedButton(
-                              onPressed: () {
-
-                              },
-                              style: ButtonStyle(
-                                  backgroundColor:
+                      Row(children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            addCart(product.id);
+                          },
+                          style: ButtonStyle(
+                              backgroundColor:
                                   MaterialStateProperty.resolveWith((states) {
-                                    if (states.contains(MaterialState.pressed)) {
-                                      return const Color.fromARGB(200, 240, 102, 61);
-                                    } else {
-                                      return const Color.fromARGB(230, 240, 102, 61);
-                                    }
-                                  }),
-                                  shape: MaterialStateProperty.all(
-                                      const RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(10))))),
-                              child:
-                              const Text("Thêm vào giỏ", style: TextStyle(fontSize: 14)),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(left: 5),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                },
-                                style: ButtonStyle(
-                                    backgroundColor:
+                                if (states.contains(MaterialState.pressed)) {
+                                  return const Color.fromARGB(
+                                      200, 240, 102, 61);
+                                } else {
+                                  return const Color.fromARGB(
+                                      230, 240, 102, 61);
+                                }
+                              }),
+                              shape: MaterialStateProperty.all(
+                                  const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(10))))),
+                          child: const Text("Thêm vào giỏ",
+                              style: TextStyle(fontSize: 14)),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ButtonStyle(
+                                backgroundColor:
                                     MaterialStateProperty.resolveWith((states) {
-                                      if (states.contains(MaterialState.pressed)) {
-                                        return const Color.fromARGB(200, 11, 22, 142);
-                                      } else {
-                                        return const Color.fromARGB(230, 11, 22, 142);
-                                      }
-                                    }),
-                                    shape: MaterialStateProperty.all(
-                                        const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.all(
-                                                Radius.circular(10))))),
-                                child:
-                                Text("Chi tiết", style: const TextStyle(fontSize: 14)),
-                              ),
-                            ),
-                          ]
-                      ),
+                                  if (states.contains(MaterialState.pressed)) {
+                                    return const Color.fromARGB(
+                                        200, 11, 22, 142);
+                                  } else {
+                                    return const Color.fromARGB(
+                                        230, 11, 22, 142);
+                                  }
+                                }),
+                                shape: MaterialStateProperty.all(
+                                    const RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.all(
+                                            Radius.circular(10))))),
+                            child: Text("Chi tiết",
+                                style: const TextStyle(fontSize: 14)),
+                          ),
+                        ),
+                      ]),
                     ],
                   ),
                 ),
@@ -223,4 +239,3 @@ class _HomeContainerState extends State<HomeContainer> {
     );
   }
 }
-

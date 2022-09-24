@@ -1,4 +1,4 @@
-#Thu Sep 22 21:16:45 ICT 2022
+#Sat Sep 24 20:22:01 ICT 2022
 base.0=D\:\\Tu_hoc\\KHOAPHAM\\ProjectSaleApp\\flutter_app_sale_06072022\\build\\app\\intermediates\\dex\\debug\\mergeDexDebug\\classes.dex
 renamed.0=classes.dex
 path.0=classes.dex

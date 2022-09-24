@@ -4,19 +4,18 @@ import 'package:flutter_app_sale_06072022/data/datasources/remote/dio_client.dar
 
 class ApiRequest {
   late Dio _dio;
-  
-  ApiRequest(){
+
+  ApiRequest() {
     _dio = DioClient.instance.dio;
   }
-  
+
   Future signIn(String email, String password) {
-    return _dio.post(ApiConstant.SIGN_IN_URL, data: {
-      "email": email,
-      "password": password
-    });
+    return _dio.post(ApiConstant.SIGN_IN_URL,
+        data: {"email": email, "password": password});
   }
 
-  Future signUp(String email, String name, String phone, String password, String address) {
+  Future signUp(String email, String name, String phone, String password,
+      String address) {
     return _dio.post(ApiConstant.SIGN_UP_URL, data: {
       "email": email,
       "password": password,
@@ -32,5 +31,9 @@ class ApiRequest {
 
   Future getCart() {
     return _dio.get(ApiConstant.CART_URL);
+  }
+
+  Future addCart(String idProduct) {
+    return _dio.post(ApiConstant.ADD_CART_URL, data: {"id_product": idProduct});
   }
 }
