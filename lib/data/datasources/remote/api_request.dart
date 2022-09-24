@@ -36,4 +36,8 @@ class ApiRequest {
   Future addCart(String idProduct) {
     return _dio.post(ApiConstant.ADD_CART_URL, data: {"id_product": idProduct});
   }
+
+  Future getOrderHistory() {
+    return _dio.post(ApiConstant.ORDER_HISTORY_URL);
+  }
 }

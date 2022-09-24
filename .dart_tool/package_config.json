@@ -26,6 +26,12 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "carousel_slider",
+      "rootUri": "file:///C:/Users/DELL/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/carousel_slider-4.1.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
       "name": "characters",
       "rootUri": "file:///C:/Users/DELL/AppData/Local/Pub/Cache/hosted/pub.dartlang.org/characters-1.2.0",
       "packageUri": "lib/",
@@ -350,7 +356,7 @@
       "languageVersion": "2.17"
     }
   ],
-  "generated": "2022-09-22T14:11:49.385302Z",
+  "generated": "2022-09-24T14:15:19.686169Z",
   "generator": "pub",
   "generatorVersion": "2.17.6"
 }

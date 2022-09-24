@@ -1,4 +1,7 @@
+import 'dart:ui';
+
 import 'package:badges/badges.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_sale_06072022/common/bases/base_widget.dart';
@@ -38,6 +41,15 @@ class _HomePageState extends State<HomePage> {
           },
         ),
         actions: [
+          Container(
+            margin: EdgeInsets.only(right: 10, top: 10),
+            child: InkWell(
+              child: Icon(Icons.history_outlined),
+              onTap: () {
+                Navigator.pushNamed(context, VariableConstant.CART_ROUTE);
+              },
+            ),
+          ),
           Consumer<HomeBloc>(
             builder: (context, bloc, child) {
               return StreamBuilder<Cart>(
@@ -49,7 +61,11 @@ class _HomePageState extends State<HomePage> {
                         snapshot.data?.products.isEmpty == true) {
                       return Container();
                     }
-                    int count = snapshot.data?.products.length ?? 0;
+                    num count = 0;
+                    for (var element in snapshot.data!.products) {
+                      count = count + element.quantity;
+                    }
+                    // int count = snapshot.data?.products.length ?? 0;
                     return Container(
                       margin: EdgeInsets.only(right: 20, top: 10),
                       child: InkWell(
@@ -113,6 +129,81 @@ class _HomeContainerState extends State<HomeContainer> {
 
   void addCart(String idProduct) {
     _homeBloc.eventSink.add(AddCartEvent(idProduct: idProduct));
+  }
+
+  void showProductDialog(Product product, BuildContext context) {
+    if (context == null) return;
+    showDialog(
+        context: context,
+        builder: (_) {
+          return AlertDialog(
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      "Hủy",
+                      style: TextStyle(color: Colors.grey[400], fontSize: 16),
+                    )),
+                TextButton(
+                    onPressed: () {
+                      addCart(product.id);
+                      Navigator.pop(context);
+                    },
+                    child: Text("Mua",
+                        style: TextStyle(
+                            color: Colors.green[400],
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16))),
+              ],
+              title: Text(
+                product.name,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16),
+              ),
+              content: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Giá : ${NumberFormat("#,###", "en_US").format(product.price)} đ",
+                      style: const TextStyle(fontSize: 14),
+                      textAlign: TextAlign.left,
+                    ),
+                    Container(
+                      margin: EdgeInsets.only(top: 10),
+                    ),
+                    CarouselSlider(
+                      items: product.gallery
+                          .map((e) => Container(
+                                child: Center(
+                                    child: Image.network(
+                                  "https://serverappsale.herokuapp.com/" + e,
+                                  fit: BoxFit.cover,
+                                  width: 1000,
+                                )),
+                              ))
+                          .toList(),
+                      options: CarouselOptions(
+                        // height: 400,
+                        aspectRatio: 16 / 9,
+                        viewportFraction: 0.8,
+                        initialPage: 0,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: true,
+                        autoPlayInterval: Duration(seconds: 3),
+                        autoPlayAnimationDuration: Duration(milliseconds: 800),
+                        autoPlayCurve: Curves.fastOutSlowIn,
+                        enlargeCenterPage: true,
+                        scrollDirection: Axis.horizontal,
+                      ),
+                    ),
+                  ],
+                ),
+                width: double.maxFinite,
+              ));
+        });
   }
 
   @override
@@ -207,7 +298,9 @@ class _HomeContainerState extends State<HomeContainer> {
                         Padding(
                           padding: const EdgeInsets.only(left: 5),
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              showProductDialog(product, context);
+                            },
                             style: ButtonStyle(
                                 backgroundColor:
                                     MaterialStateProperty.resolveWith((states) {
