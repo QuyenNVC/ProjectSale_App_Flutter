@@ -46,7 +46,8 @@ class _HomePageState extends State<HomePage> {
             child: InkWell(
               child: Icon(Icons.history_outlined),
               onTap: () {
-                Navigator.pushNamed(context, VariableConstant.CART_ROUTE);
+                Navigator.pushNamed(
+                    context, VariableConstant.ORDER_HISTORY_ROUTE);
               },
             ),
           ),

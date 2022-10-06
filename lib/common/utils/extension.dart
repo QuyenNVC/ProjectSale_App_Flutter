@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/single_child_widget.dart';
 
 void showMessage(
@@ -19,12 +20,18 @@ void showMessage(
   );
 }
 
-
 bool isNotEmpty(List<String> data) {
-  for (int i = 0; i < data.length; i++){
+  for (int i = 0; i < data.length; i++) {
     if (data[i].isEmpty) {
       return false;
     }
   }
   return true;
+}
+
+String convertServerTimeToString(String time) {
+  var dateValue =
+      new DateFormat("yyyy-MM-ddTHH:mm:ssZ").parseUTC(time).toLocal();
+  String formattedDate = DateFormat("yyyy-MM-dd hh:mm").format(dateValue);
+  return formattedDate;
 }
