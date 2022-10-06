@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/src/foundation/key.dart';
@@ -11,6 +10,7 @@ import 'package:flutter_app_sale_06072022/data/model/cart.dart';
 import 'package:flutter_app_sale_06072022/data/repositories/product_repository.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/order_history/order_history_bloc.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/order_history/order_history_event.dart';
+import 'package:flutter_app_sale_06072022/presentation/features/order_history_detail/order_history_detail_page.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -41,7 +41,7 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
               ..updateProductRepository(repository);
           })
         ],
-        appBar: AppBar(title: const Text("Order History")));
+        appBar: AppBar(title: const Text("Lịch sử đặt hàng")));
   }
 }
 
@@ -128,7 +128,8 @@ class _OrderHistoryContainerState extends State<OrderHistoryContainer> {
             return ListView.builder(
                 itemCount: snapshot.data?.length ?? 0,
                 itemBuilder: (context, index) {
-                  return _renderOrderHistoryItem(snapshot.data?[index]);
+                  return _renderOrderHistoryItem(
+                      snapshot.data?[index], context);
                 });
           })),
       LoadingWidget(
@@ -139,7 +140,7 @@ class _OrderHistoryContainerState extends State<OrderHistoryContainer> {
   }
 }
 
-Widget _renderOrderHistoryItem(Cart? cart) {
+Widget _renderOrderHistoryItem(Cart? cart, BuildContext context) {
   if (cart == null) return Container();
   return SizedBox(
     height: 90,
@@ -168,8 +169,14 @@ Widget _renderOrderHistoryItem(Cart? cart) {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               ),
               ElevatedButton(
-                onPressed: () {},
-                child: const Text("Detail"),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const OrderHistoryDetailPage(),
+                          settings: RouteSettings(arguments: cart)));
+                },
+                child: const Text("Chi tiết"),
                 style: ButtonStyle(
                     backgroundColor:
                         MaterialStateProperty.resolveWith((states) {
