@@ -38,12 +38,16 @@ class ApiRequest {
   }
 
   Future updateCart(String idProduct, String idCart, num quantity) {
-    print(quantity);
     return _dio.post(ApiConstant.UPDATE_CART_URL, data: {
       "id_product": idProduct,
       "id_cart": idCart,
       "quantity": quantity
     });
+  }
+
+  Future confirmCart(String idCart) {
+    return _dio.post(ApiConstant.CONFIRM_CART_URL,
+        data: {"id_cart": idCart, "status": false});
   }
 
   Future getOrderHistory() {

@@ -82,11 +82,14 @@ class _HomePageState extends State<HomePage> {
                           // Navigator.pushNamed(
                           //     context, VariableConstant.CART_ROUTE);
                           Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => const CartPage(),
-                                  settings:
-                                      RouteSettings(arguments: snapshot.data)));
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => const CartPage(),
+                                      settings: RouteSettings(
+                                          arguments: snapshot.data)))
+                              .then((value) {
+                            bloc.eventSink.add(GetCartEvent());
+                          });
                         },
                       ),
                     );

@@ -1,15 +1,13 @@
 import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_app_sale_06072022/common/bases/base_widget.dart';
-import 'package:flutter_app_sale_06072022/common/constants/variable_constant.dart';
 import 'package:flutter_app_sale_06072022/common/utils/extension.dart';
 import 'package:flutter_app_sale_06072022/common/widgets/loading_widget.dart';
 import 'package:flutter_app_sale_06072022/data/datasources/remote/api_request.dart';
 import 'package:flutter_app_sale_06072022/data/model/cart.dart';
 import 'package:flutter_app_sale_06072022/data/repositories/product_repository.dart';
+import 'package:flutter_app_sale_06072022/presentation/features/cart/cart_page.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/home/home_bloc.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/home/home_event.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/order_history/order_history_bloc.dart';
@@ -82,8 +80,17 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                             child: Icon(Icons.shopping_cart_outlined),
                           ),
                           onTap: () {
-                            Navigator.pushNamed(
-                                context, VariableConstant.CART_ROUTE);
+                            // Navigator.pushNamed(
+                            //     context, VariableConstant.CART_ROUTE);
+                            Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => const CartPage(),
+                                        settings: RouteSettings(
+                                            arguments: snapshot.data)))
+                                .then((value) {
+                              bloc.eventSink.add(GetCartEvent());
+                            });
                           },
                         ),
                       );
@@ -136,46 +143,6 @@ class _OrderHistoryContainerState extends State<OrderHistoryContainer> {
               );
             }
             if (snapshot.hasData && snapshot.data?.length == 0) {
-              // return Expanded(
-              //   child: Column(
-              //     children: [
-              //       Center(
-              //         child: Image.asset('assets/images/empty_cart.png'),
-              //       ),
-              //       Container(
-              //         padding: EdgeInsets.symmetric(vertical: 16),
-              //         child: Text(
-              //           "Chưa có lịch sử đơn hàng",
-              //           style: TextStyle(
-              //               fontSize: 20,
-              //               fontWeight: FontWeight.w600,
-              //               color: Colors.red),
-              //         ),
-              //       ),
-              //       ElevatedButton(
-              //         onPressed: () {
-              //           Navigator.of(context).pop();
-              //         },
-              //         child: const Text("Quay lại"),
-              //         style: ButtonStyle(
-              //             backgroundColor:
-              //                 MaterialStateProperty.resolveWith((states) {
-              //               if (states.contains(MaterialState.pressed)) {
-              //                 return const Color.fromARGB(200, 240, 102, 61);
-              //               } else {
-              //                 return const Color.fromARGB(230, 240, 102, 61);
-              //               }
-              //             }),
-              //             shape: MaterialStateProperty.all(
-              //                 const RoundedRectangleBorder(
-              //                     borderRadius:
-              //                         BorderRadius.all(Radius.circular(20))))),
-              //       )
-              //     ],
-              //     crossAxisAlignment: CrossAxisAlignment.center,
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //   ),
-              // );
               return Container();
             }
             return ListView.builder(

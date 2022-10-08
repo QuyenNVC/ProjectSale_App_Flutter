@@ -1,20 +1,18 @@
 import 'package:badges/badges.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_app_sale_06072022/common/bases/base_widget.dart';
 import 'package:flutter_app_sale_06072022/common/constants/api_constant.dart';
 import 'package:flutter_app_sale_06072022/common/constants/variable_constant.dart';
+import 'package:flutter_app_sale_06072022/common/utils/extension.dart';
 import 'package:flutter_app_sale_06072022/common/widgets/loading_widget.dart';
+import 'package:flutter_app_sale_06072022/common/widgets/progress_listener_widget.dart';
 import 'package:flutter_app_sale_06072022/data/datasources/remote/api_request.dart';
 import 'package:flutter_app_sale_06072022/data/model/cart.dart';
 import 'package:flutter_app_sale_06072022/data/model/product.dart';
 import 'package:flutter_app_sale_06072022/data/repositories/product_repository.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/cart/cart_bloc.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/cart/cart_event.dart';
-import 'package:flutter_app_sale_06072022/presentation/features/home/home_event.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -105,6 +103,9 @@ class _CartContainerState extends State<CartContainer> {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       Cart cart = ModalRoute.of(context)!.settings.arguments as Cart;
       _cartBloc.cartController.sink.add(cart);
+      _cartBloc.messageStream.listen((event) {
+        showMessage(context, "Thông báo", event);
+      });
     });
   }
 
@@ -123,15 +124,111 @@ class _CartContainerState extends State<CartContainer> {
                 );
               }
               List<Product>? products = snapshot.data?.products ?? [];
-              // print(snapshot.data);
-              return ListView.builder(
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  return _renderItem(
-                      products[index], snapshot.data?.id.toString());
-                },
+              num sumPrice = products.fold(0, (sum, e) {
+                sum = sum + e.price * e.quantity;
+                return sum;
+              });
+
+              return CustomScrollView(
+                slivers: <Widget>[
+                  _getSlivers(products, snapshot.data?.id.toString(), context),
+                  SliverToBoxAdapter(
+                    child: Container(
+                      padding: EdgeInsets.all(8),
+                      margin: EdgeInsets.symmetric(vertical: 8),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Thành tiền: ",
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                "${NumberFormat("#,###", "en_US").format(sumPrice)} đ",
+                                style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.red),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 8,
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              showDialog(
+                                  context: context,
+                                  builder: (_) {
+                                    return AlertDialog(
+                                      title: Text(
+                                        "Đặt hàng?",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.red),
+                                      ),
+                                      content: Text(
+                                          "Quý khách sẽ thanh toán ${NumberFormat("#,###", "en_US").format(sumPrice)} đồng cho các món ăn trên"),
+                                      actions: [
+                                        TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context),
+                                            child: Text(
+                                              "Hủy",
+                                              style: TextStyle(
+                                                  color: Colors.grey[400],
+                                                  fontSize: 16),
+                                            )),
+                                        TextButton(
+                                            onPressed: () {
+                                              confirmCart(
+                                                  snapshot.data!.id.toString());
+                                              Navigator.pop(context);
+                                            },
+                                            child: Text("Thanh toán",
+                                                style: TextStyle(
+                                                    color: Colors.red[400],
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 16))),
+                                      ],
+                                    );
+                                  });
+                            },
+                            child: Text(
+                              "Thanh toán",
+                              style: TextStyle(fontSize: 16),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              primary: Color.fromARGB(255, 255, 0, 0),
+                              minimumSize: const Size.fromHeight(50),
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
+          ),
+          ProgressListenerWidget<CartBloc>(
+            callback: (event) {
+              print(event.toString());
+              if (event is ConfirmCartSuccessEvent) {
+                ScaffoldMessenger.of(context)
+                    .showSnackBar(SnackBar(content: Text(event.message)));
+                // Navigator.pop(context);
+                Navigator.popAndPushNamed(context, VariableConstant.HOME_ROUTE);
+              }
+            },
+            child: Container(),
           ),
           LoadingWidget(
             bloc: _cartBloc,
@@ -142,9 +239,24 @@ class _CartContainerState extends State<CartContainer> {
     );
   }
 
+  SliverList _getSlivers(List products, String? idCart, BuildContext context) {
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (BuildContext context, int index) {
+          return _renderItem(products[index], idCart);
+        },
+        childCount: products.length,
+      ),
+    );
+  }
+
   void updateCart(String idProduct, int quantity, String idCart) {
     _cartBloc.eventSink.add(UpdateCartEvent(
         idProduct: idProduct, quantity: quantity, idCart: idCart));
+  }
+
+  void confirmCart(String idCart) {
+    _cartBloc.eventSink.add(ConfirmCartEvent(idCart: idCart));
   }
 
   Widget _renderItem(Product product, String? idCart) {
