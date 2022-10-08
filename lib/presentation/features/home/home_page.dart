@@ -2,13 +2,14 @@ import 'dart:ui';
 
 import 'package:badges/badges.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app_sale_06072022/common/bases/base_widget.dart';
+import 'package:flutter_app_sale_06072022/common/bases/route_helper.dart';
 import 'package:flutter_app_sale_06072022/common/constants/variable_constant.dart';
 import 'package:flutter_app_sale_06072022/data/datasources/local/cache/app_cache.dart';
 import 'package:flutter_app_sale_06072022/data/model/product.dart';
 import 'package:flutter_app_sale_06072022/data/repositories/product_repository.dart';
+import 'package:flutter_app_sale_06072022/presentation/features/cart/cart_page.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/home/home_bloc.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/home/home_event.dart';
 import 'package:intl/intl.dart';
@@ -78,8 +79,14 @@ class _HomePageState extends State<HomePage> {
                           child: Icon(Icons.shopping_cart_outlined),
                         ),
                         onTap: () {
-                          Navigator.pushNamed(
-                              context, VariableConstant.CART_ROUTE);
+                          // Navigator.pushNamed(
+                          //     context, VariableConstant.CART_ROUTE);
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const CartPage(),
+                                  settings:
+                                      RouteSettings(arguments: snapshot.data)));
                         },
                       ),
                     );

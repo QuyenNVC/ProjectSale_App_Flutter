@@ -1,13 +1,17 @@
+import 'package:badges/badges.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_app_sale_06072022/common/bases/base_widget.dart';
+import 'package:flutter_app_sale_06072022/common/constants/variable_constant.dart';
 import 'package:flutter_app_sale_06072022/common/utils/extension.dart';
 import 'package:flutter_app_sale_06072022/common/widgets/loading_widget.dart';
 import 'package:flutter_app_sale_06072022/data/datasources/remote/api_request.dart';
 import 'package:flutter_app_sale_06072022/data/model/cart.dart';
 import 'package:flutter_app_sale_06072022/data/repositories/product_repository.dart';
+import 'package:flutter_app_sale_06072022/presentation/features/home/home_bloc.dart';
+import 'package:flutter_app_sale_06072022/presentation/features/home/home_event.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/order_history/order_history_bloc.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/order_history/order_history_event.dart';
 import 'package:flutter_app_sale_06072022/presentation/features/order_history_detail/order_history_detail_page.dart';
@@ -39,9 +43,55 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
             bloc?.updateProductRepository(repository);
             return bloc ?? OrderHistoryBloc()
               ..updateProductRepository(repository);
-          })
+          }),
+          ProxyProvider<ProductRepository, HomeBloc>(
+            update: (context, repository, bloc) {
+              bloc?.updateProductRepository(repository);
+              return bloc ?? HomeBloc()
+                ..updateProductRepository(repository);
+            },
+          ),
         ],
-        appBar: AppBar(title: const Text("Lịch sử đặt hàng")));
+        appBar: AppBar(
+          title: const Text("Lịch sử đặt hàng"),
+          actions: [
+            Consumer<HomeBloc>(
+              builder: (context, bloc, child) {
+                return StreamBuilder<Cart>(
+                    initialData: null,
+                    stream: bloc.cartController.stream,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError ||
+                          snapshot.data == null ||
+                          snapshot.data?.products.isEmpty == true) {
+                        return Container();
+                      }
+                      num count = 0;
+                      for (var element in snapshot.data!.products) {
+                        count = count + element.quantity;
+                      }
+                      // int count = snapshot.data?.products.length ?? 0;
+                      return Container(
+                        margin: EdgeInsets.only(right: 20, top: 10),
+                        child: InkWell(
+                          child: Badge(
+                            badgeContent: Text(
+                              count.toString(),
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            child: Icon(Icons.shopping_cart_outlined),
+                          ),
+                          onTap: () {
+                            Navigator.pushNamed(
+                                context, VariableConstant.CART_ROUTE);
+                          },
+                        ),
+                      );
+                    });
+              },
+            )
+          ],
+        ));
   }
 }
 
@@ -54,6 +104,7 @@ class OrderHistoryContainer extends StatefulWidget {
 
 class _OrderHistoryContainerState extends State<OrderHistoryContainer> {
   late OrderHistoryBloc _orderHistoryBloc;
+  late HomeBloc _homeBloc;
 
   @override
   void initState() {
@@ -61,6 +112,8 @@ class _OrderHistoryContainerState extends State<OrderHistoryContainer> {
     super.initState();
     _orderHistoryBloc = context.read<OrderHistoryBloc>();
     _orderHistoryBloc.eventSink.add(GetOrderHistoryEvent());
+    _homeBloc = context.read<HomeBloc>();
+    _homeBloc.eventSink.add(GetCartEvent());
 
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _orderHistoryBloc.messageStream.listen((event) {
