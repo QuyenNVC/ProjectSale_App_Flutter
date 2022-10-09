@@ -68,7 +68,9 @@ class _OrderHistoryPageState extends State<OrderHistoryPage> {
                       for (var element in snapshot.data!.products) {
                         count = count + element.quantity;
                       }
-                      // int count = snapshot.data?.products.length ?? 0;
+                      if (count == 0) {
+                        return Container();
+                      }
                       return Container(
                         margin: EdgeInsets.only(right: 20, top: 10),
                         child: InkWell(
@@ -143,7 +145,46 @@ class _OrderHistoryContainerState extends State<OrderHistoryContainer> {
               );
             }
             if (snapshot.hasData && snapshot.data?.length == 0) {
-              return Container();
+              return Expanded(
+                child: Column(
+                  children: [
+                    Center(
+                      child: Image.asset('assets/images/empty_cart.png'),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        "Chưa có lịch sử đơn hàng",
+                        style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red),
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text("Quay lại"),
+                      style: ButtonStyle(
+                          backgroundColor:
+                              MaterialStateProperty.resolveWith((states) {
+                            if (states.contains(MaterialState.pressed)) {
+                              return const Color.fromARGB(200, 240, 102, 61);
+                            } else {
+                              return const Color.fromARGB(230, 240, 102, 61);
+                            }
+                          }),
+                          shape: MaterialStateProperty.all(
+                              const RoundedRectangleBorder(
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(20))))),
+                    )
+                  ],
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                ),
+              );
             }
             return ListView.builder(
                 itemCount: snapshot.data?.length ?? 0,
