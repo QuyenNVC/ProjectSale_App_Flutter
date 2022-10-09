@@ -44,6 +44,9 @@ class _CartPageState extends State<CartPage> {
                   for (var element in cart.products) {
                     count = count + element.quantity;
                   }
+                  if (count == 0) {
+                    return Container();
+                  }
                   return Container(
                     margin: EdgeInsets.only(right: 20, top: 10),
                     child: InkWell(
@@ -134,7 +137,7 @@ class _CartContainerState extends State<CartContainer> {
                       Container(
                         padding: EdgeInsets.symmetric(vertical: 16),
                         child: Text(
-                          "Chưa có lịch sử đơn hàng",
+                          "Giỏ hàng trống",
                           style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.w600,
@@ -143,7 +146,8 @@ class _CartContainerState extends State<CartContainer> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          Navigator.of(context).pop();
+                          Navigator.pushNamed(
+                              context, VariableConstant.HOME_ROUTE);
                         },
                         child: const Text("Quay lại"),
                         style: ButtonStyle(
